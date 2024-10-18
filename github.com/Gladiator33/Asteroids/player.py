@@ -26,12 +26,16 @@ class Player(CircleShape):
 
         if keys[pygame.K_a]:
             self.rotate(dt)
+            self.create_thruster_effect((173, 216, 230), 3)
         if keys[pygame.K_d]:
             self.rotate(-dt)
+            self.create_thruster_effect()
         if keys [pygame.K_w]:
             self.move(dt)
+            self.create_thruster_effect((255, 265, 0), THRUSTER_RADIUS)
         if keys [pygame.K_s]:
             self.move(-dt)
+            self.create_thruster_effect()
         if keys[pygame.K_SPACE]:
             self.shoot()
 
@@ -43,8 +47,11 @@ class Player(CircleShape):
         new_shot = Shot(self.position.x, self.position.y, PLAYER_SHOT_RADIUS)
         new_shot.fire(self.rotation)
     
-    def create_thruster_effect(self):
-        thruster = Thruster(self.position.x, self.position.y)
-        direction = pygame.Vector2(0, 1).rotate(-self.rotation)
-        thruster.velocity = direction * THRUSTER_SPEED  # Define THRUSTER_SPEED
+    def create_thruster_effect(self, color, radius):
+        direction = pygame.Vector2(0, -1).rotate(self.rotation)
+        offset = direction * self.radius
+        thruster_pos = self.position + offset
+        thruster = Thruster(thruster_pos.x, thruster_pos.y, color, radius)
+        thruster_velocity = direction * THRUSTER_SPEED
+        thruster.velocity = thruster_velocity
         thruster_group.add(thruster)

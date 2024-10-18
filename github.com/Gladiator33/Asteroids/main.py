@@ -50,6 +50,14 @@ def main():
         for thing in drawable:
             thing.draw(screen)
 
+        for thruster in list(thruster_group):
+            thruster_group.update(dt)
+            if thruster.lifetime <= 0:
+                thruster_group.remove(thruster)
+        
+        for thruster in thruster_group:
+            pygame.draw.circle(screen, thruster.color, thruster.position, thruster.radius)
+
         pygame.display.flip()
     
         dt = clock.tick(60) / 1000

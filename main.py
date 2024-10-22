@@ -15,6 +15,37 @@ AsteroidField.containers = (updatable,)
 Shot.containers = (shots, updatable, drawable)
 Thruster.containers = (thruster_group, updatable, drawable)
 
+def handle_events():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            import sys
+            sys.exit()
+
+def update_game_logic(dt, player):
+    for thing in updatable:
+        thing.update(dt)
+    check_collisions(player)
+
+def draw_objects(screen):
+    for thing in drawable:
+        thing.draw(screen)
+
+def check_collisions(player):
+    for asteroid in asteroids:
+        if player.collisions(asteroid):
+            print("Game Over!")
+            import sys
+            sys.exit()
+            
+    for asteroid in asteroids:
+        for shot in shots:
+            if shot.collisions(asteroid):
+                asteroid.split()
+                asteroid.kill()
+                shot.kill()
+
+ 
+ 
 def main():
     pygame.init()
     print("Starting asteroids!")
@@ -32,24 +63,10 @@ def main():
     asteroid_field = AsteroidField()
 
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                
-                return
-            
         screen.fill((0 ,0 ,0))
-
-        for thing in updatable:
-            thing.update(dt)
-
-        for asteroid in asteroids:
-            if player.collisions(asteroid):
-                print("Game Over!")
-                import sys
-                sys.exit()
-
-        for thing in drawable:
-            thing.draw(screen)
+        handle_events()
+        update_game_logic(dt, player)    
+        draw_objects(screen)
 
         for thruster in list(thruster_group):
             thruster_group.update(dt)
@@ -58,7 +75,7 @@ def main():
         
         for thruster in thruster_group:
             pygame.draw.circle(screen, thruster.color, thruster.position, thruster.radius)
-
+        
         pygame.display.flip()
     
         dt = clock.tick(60) / 1000

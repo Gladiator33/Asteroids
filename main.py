@@ -15,10 +15,25 @@ AsteroidField.containers = (updatable,)
 Shot.containers = (shots, updatable, drawable)
 Thruster.containers = (thruster_group, updatable, drawable)
 
-game_over = False
 score = 0
-score_font = pygame.font.Font(None, 36)
-font = pygame.font.Font(None, 74)
+game_over = False
+global score_font
+
+def load_high_score():
+    try:
+        with open("high_score.txt", "r") as file:
+            return int(file.read().strip())
+    except FileNotFoundError:
+        return 0
+
+high_score = load_high_score()
+
+def save_high_score(score):
+    global high_score
+    if score > load_high_score():
+        high_score = score
+        with open("high_score.txt", "w") as file:
+            file.write(str(score))
 
 def handle_events():
     global game_over
@@ -29,6 +44,7 @@ def handle_events():
         if game_over and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 game_over = False
+                save_high_score(score)
                 return reset_game()
     return None
 
@@ -52,14 +68,16 @@ def check_collisions(player):
             game_over = True
             
     for asteroid in asteroids:
+        global score
         for shot in shots:
             if shot.collisions(asteroid):
                 asteroid.split()
-                asteroid.kill()
                 shot.kill()
+                score += 100
     return False
 
 def reset_game():
+    global score
     asteroids.empty()
     shots.empty()
     updatable.empty()
@@ -78,7 +96,10 @@ def reset_game():
  
  
 def main():
+    global score_font
     pygame.init()
+    score_font = pygame.font.Font(None, 36)
+    font = pygame.font.Font(None, 74)
     print("Starting asteroids!")
     print(f"Screen width: {SCREEN_WIDTH}")
     print(f"Screen height: {SCREEN_HEIGHT}")
@@ -112,6 +133,7 @@ def main():
 
 
         if game_over:
+            global score
             text = font.render("GAME OVER!", True, (255, 0, 0))
             text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
             screen.blit(text, text_rect)
@@ -119,8 +141,17 @@ def main():
             # Smaller font for instruction text
             small_font = pygame.font.Font(None, 36)  # Size 36 instead of 74
             restart_text = small_font.render("Press R to restart", True, (255, 255, 255))
-            restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 50))
-            screen.blit(restart_text, restart_rect)
+            restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 150))
+            end_score_text = small_font.render(f"Final score: {score}", True, (255, 255, 255))
+            end_score_rect = end_score_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 50))
+            if score >= high_score:
+                highscore_text = small_font.render("New Highscore!", True, (255, 255, 255))
+            else:
+                highscore_text = small_font.render(f"Highscore: {high_score}", True, (255, 255, 255))
+            highscore_rect = highscore_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 100))
+            screen.blit(highscore_text, highscore_rect)
+            screen.blit(restart_text, restart_rect, )
+            screen.blit(end_score_text, end_score_rect)
 
         pygame.display.flip()
     
